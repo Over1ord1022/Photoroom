@@ -74,108 +74,34 @@
         .carousel-button:hover {
             background-color: rgba(255, 255, 255, 0.3);
         }
-        
-        .mask-preview {
-            margin: 0 15px;
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        
-        .mask-preview.active {
-            border-color: #0066cc;
-            box-shadow: 0 0 15px rgba(0, 102, 204, 0.5);
-            transform: scale(1.1);
-        }
-        
-        .mask-preview img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        .mask-name {
-            position: absolute;
-            bottom: -25px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: white;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        
-        .preview-container {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
     </style>
 </head>
 
 <body>
-    <div id="instructions">Выберите маску с помощью карусели ниже</div>
+    <div id="instructions">Используйте кнопки для переключения между масками</div>
 
     <div id="carousel-container">
         <div class="carousel">
             <button class="carousel-button" id="prev-button">←</button>
-            
-            <div class="preview-container">
-                <div class="mask-preview active" data-mask="mask-v">
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">Ананимус</div>
-                </div>
-                <div class="mask-name"></div>
-            </div>
-            
-            <div class="preview-container">
-                <div class="mask-preview" data-mask="mask-helmet">
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">Шлем</div>
-                </div>
-                <div class="mask-name"></div>
-            </div>
-            
-            <div class="preview-container">
-                <div class="mask-preview" data-mask="mask-monkey">
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">Бибизян</div>
-                </div>
-                <div class="mask-name"></div>
-            </div>
-            
-            <div class="preview-container">
-                <div class="mask-preview" data-mask="face-mesh">
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">Face</div>
-                </div>
-                <div class="mask-name"></div>
-            </div>
-            
             <button class="carousel-button" id="next-button">→</button>
         </div>
     </div>
 
     <a-scene>
-        <!-- Ask user for camera permissions, display some text if permission is denied -->
+        <!-- Запрашивайте у пользователя разрешения на использование камеры, отображайте какой-либо текст, если в разрешении отказано -->
         <a-entity zappar-permissions-ui id="permissions"></a-entity>
-        <!-- shows a full-page dialog that informs the user they're using an unsupported browser -->
+        <!-- показывает полностраничное диалоговое окно, информирующее пользователя о том, что он использует неподдерживаемый браузер -->
         <a-entity zappar-compatibility-ui id="compatibility"></a-entity>
 
         <a-camera zappar-camera="user-facing: true;" />
 
-        <!-- Setup our face tracker -->
+        <!-- Настройте наш фейс-трекер -->
         <a-entity zappar-face id="my-face-tracker">
 
-            <!-- Include a head mask object that will make sure the user's head appears in the center of our helmet -->
+            <!-- Добавьте объект head mask, который позволит убедиться, что голова пользователя находится в центре нашего шлема -->
             <a-entity zappar-head-mask="face:#my-face-tracker;"></a-entity>
 
-            <!-- Include 3D models inside our face tracker -->
+            <!-- Включите 3D-модели в наш фейс-трекер -->
             <a-entity id="mask-v" gltf-model="url(assets/v_mask_v_for_vendetta_printable_stl.glb)" position="0 -0.15 1" scale="1 1 1" rotation="0 0 0" visible="true"></a-entity>
             <a-entity id="mask-helmet" gltf-model="url(assets/z_helmet.glb)" position="0.3 -1.2 0" scale="1 1 1" rotation="0 0 0" visible="false"></a-entity>
             <a-entity id="mask-monkey" gltf-model="url(assets/MonkeyKing.glb)" position="0 0 0.3" scale="1 1 1" rotation="0 0 0" visible="false"></a-entity>
@@ -184,61 +110,52 @@
     </a-scene>
 
     <script>
-        // Get all mask preview elements
-        const maskPreviews = document.querySelectorAll('.mask-preview');
+        // Получить все элементы маски
+        const masks = [
+            document.getElementById('mask-v'),
+            document.getElementById('mask-helmet'),
+            document.getElementById('mask-monkey'),
+            document.getElementById('face-mesh')
+        ];
+        
         const prevButton = document.getElementById('prev-button');
         const nextButton = document.getElementById('next-button');
         
-        // Current active mask index
+        // Текущий активный индекс маски
         let currentMaskIndex = 0;
         
-        // Function to switch between masks
-        function switchMask(maskId) {
-            // Hide all masks
-            document.getElementById('mask-v').setAttribute('visible', false);
-            document.getElementById('mask-helmet').setAttribute('visible', false);
-            document.getElementById('mask-monkey').setAttribute('visible', false);
-            document.getElementById('face-mesh').setAttribute('visible', false);
-            
-            // Show selected mask
-            document.getElementById(maskId).setAttribute('visible', true);
-            
-            // Update preview states
-            maskPreviews.forEach((preview, index) => {
-                if (preview.dataset.mask === maskId) {
-                    preview.classList.add('active');
-                    currentMaskIndex = index;
-                } else {
-                    preview.classList.remove('active');
-                }
+        // Функция переключения между масками
+        function switchMask(index) {
+            // Скрыть все маски
+            masks.forEach(mask => {
+                mask.setAttribute('visible', false);
             });
+            
+            // Показать выбранную маску
+            masks[index].setAttribute('visible', true);
+            
+            // Обновить текущий индекс
+            currentMaskIndex = index;
         }
         
-        // Add click event listeners to mask previews
-        maskPreviews.forEach(preview => {
-            preview.addEventListener('click', () => {
-                switchMask(preview.dataset.mask);
-            });
-        });
-        
-        // Function to navigate to next mask
+        // Функция для перехода к следующей маске
         function nextMask() {
-            currentMaskIndex = (currentMaskIndex + 1) % maskPreviews.length;
-            switchMask(maskPreviews[currentMaskIndex].dataset.mask);
+            const nextIndex = (currentMaskIndex + 1) % masks.length;
+            switchMask(nextIndex);
         }
         
-        // Function to navigate to previous mask
+        // Функция перехода к предыдущей маске
         function prevMask() {
-            currentMaskIndex = (currentMaskIndex - 1 + maskPreviews.length) % maskPreviews.length;
-            switchMask(maskPreviews[currentMaskIndex].dataset.mask);
+            const prevIndex = (currentMaskIndex - 1 + masks.length) % masks.length;
+            switchMask(prevIndex);
         }
         
-        // Add event listeners to navigation buttons
+        // Добавление прослушивателей событий к кнопкам навигации
         prevButton.addEventListener('click', prevMask);
         nextButton.addEventListener('click', nextMask);
         
-        // Initialize with the first mask
-        switchMask('mask-v');
+        // Инициализируйтесь с помощью первой маски
+        switchMask(0);
     </script>
 </body>
 
