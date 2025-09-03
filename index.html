@@ -6,7 +6,7 @@
     <script src="https://libs.zappar.com/zappar-aframe/2.0.0/zappar-aframe.js"></script>
 
     <meta charset="utf-8" />
-    <title>Zappar for A-Frame: Face Tracking 3D Model Example</title>
+    <title>Zappar for A-Frame: Face Tracking Masks with Carousel</title>
     <style>
         html,
         body {
@@ -16,41 +16,7 @@
             height: 100%;
             font-family: Arial, sans-serif;
             overflow: hidden;
-        }
-        
-        #ui-container {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            z-index: 9999;
-            pointer-events: none;
-        }
-        
-        .mask-button {
-            pointer-events: auto;
-            margin: 0 10px;
-            padding: 12px 20px;
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .mask-button:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-            transform: translateY(-2px);
-        }
-        
-        .mask-button.active {
-            background-color: #0066cc;
-            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.5);
+            background-color: #000;
         }
         
         #instructions {
@@ -69,16 +35,130 @@
             font-size: 16px;
             pointer-events: none;
         }
+        
+        #carousel-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        
+        .carousel {
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 50px;
+            padding: 8px;
+            pointer-events: auto;
+        }
+        
+        .carousel-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .carousel-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .mask-preview {
+            margin: 0 15px;
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .mask-preview.active {
+            border-color: #0066cc;
+            box-shadow: 0 0 15px rgba(0, 102, 204, 0.5);
+            transform: scale(1.1);
+        }
+        
+        .mask-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .mask-name {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .preview-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
     </style>
 </head>
 
 <body>
-    <div id="instructions">Выберите маску с помощью кнопок ниже</div>
+    <div id="instructions">Выберите маску с помощью карусели ниже</div>
 
-    <div id="ui-container">
-        <button class="mask-button active" onclick="switchMask(0)">Маска V</button>
-        <button class="mask-button" onclick="switchMask(1)">Шлем</button>
-        <button class="mask-button" onclick="switchMask(2)">Король обезьян</button>
+    <div id="carousel-container">
+        <div class="carousel">
+            <button class="carousel-button" id="prev-button">←</button>
+            
+            <div class="preview-container">
+                <div class="mask-preview active" data-mask="mask-v">
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">Ананимус</div>
+                </div>
+                <div class="mask-name"></div>
+            </div>
+            
+            <div class="preview-container">
+                <div class="mask-preview" data-mask="mask-helmet">
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">Шлем</div>
+                </div>
+                <div class="mask-name"></div>
+            </div>
+            
+            <div class="preview-container">
+                <div class="mask-preview" data-mask="mask-monkey">
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">Бибизян</div>
+                </div>
+                <div class="mask-name"></div>
+            </div>
+            
+            <div class="preview-container">
+                <div class="mask-preview" data-mask="face-mesh">
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">Face</div>
+                </div>
+                <div class="mask-name"></div>
+            </div>
+            
+            <button class="carousel-button" id="next-button">→</button>
+        </div>
     </div>
 
     <a-scene>
@@ -99,37 +179,66 @@
             <a-entity id="mask-v" gltf-model="url(assets/v_mask_v_for_vendetta_printable_stl.glb)" position="0 -0.15 1" scale="1 1 1" rotation="0 0 0" visible="true"></a-entity>
             <a-entity id="mask-helmet" gltf-model="url(assets/z_helmet.glb)" position="0.3 -1.2 0" scale="1 1 1" rotation="0 0 0" visible="false"></a-entity>
             <a-entity id="mask-monkey" gltf-model="url(assets/MonkeyKing.glb)" position="0 0 0.3" scale="1 1 1" rotation="0 0 0" visible="false"></a-entity>
-
+            <a-entity id="face-mesh" geometry="primitive: face-mesh; face: #my-face-tracker" material="src:url(assets/faceMeshTemplate1.png); transparent: true;" visible="false"></a-entity>
         </a-entity>
     </a-scene>
 
     <script>
+        // Get all mask preview elements
+        const maskPreviews = document.querySelectorAll('.mask-preview');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        
+        // Current active mask index
+        let currentMaskIndex = 0;
+        
         // Function to switch between masks
-        function switchMask(maskIndex) {
+        function switchMask(maskId) {
             // Hide all masks
             document.getElementById('mask-v').setAttribute('visible', false);
             document.getElementById('mask-helmet').setAttribute('visible', false);
             document.getElementById('mask-monkey').setAttribute('visible', false);
-
+            document.getElementById('face-mesh').setAttribute('visible', false);
+            
             // Show selected mask
-            if (maskIndex === 0) {
-                document.getElementById('mask-v').setAttribute('visible', true);
-            } else if (maskIndex === 1) {
-                document.getElementById('mask-helmet').setAttribute('visible', true);
-            } else if (maskIndex === 2) {
-                document.getElementById('mask-monkey').setAttribute('visible', true);
-            }
-
-            // Update button states
-            const buttons = document.querySelectorAll('.mask-button');
-            buttons.forEach((button, index) => {
-                if (index === maskIndex) {
-                    button.classList.add('active');
+            document.getElementById(maskId).setAttribute('visible', true);
+            
+            // Update preview states
+            maskPreviews.forEach((preview, index) => {
+                if (preview.dataset.mask === maskId) {
+                    preview.classList.add('active');
+                    currentMaskIndex = index;
                 } else {
-                    button.classList.remove('active');
+                    preview.classList.remove('active');
                 }
             });
         }
+        
+        // Add click event listeners to mask previews
+        maskPreviews.forEach(preview => {
+            preview.addEventListener('click', () => {
+                switchMask(preview.dataset.mask);
+            });
+        });
+        
+        // Function to navigate to next mask
+        function nextMask() {
+            currentMaskIndex = (currentMaskIndex + 1) % maskPreviews.length;
+            switchMask(maskPreviews[currentMaskIndex].dataset.mask);
+        }
+        
+        // Function to navigate to previous mask
+        function prevMask() {
+            currentMaskIndex = (currentMaskIndex - 1 + maskPreviews.length) % maskPreviews.length;
+            switchMask(maskPreviews[currentMaskIndex].dataset.mask);
+        }
+        
+        // Add event listeners to navigation buttons
+        prevButton.addEventListener('click', prevMask);
+        nextButton.addEventListener('click', nextMask);
+        
+        // Initialize with the first mask
+        switchMask('mask-v');
     </script>
 </body>
 
